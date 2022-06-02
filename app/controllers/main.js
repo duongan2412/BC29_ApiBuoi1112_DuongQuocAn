@@ -73,20 +73,7 @@ getEle("btnThemNguoiDung").onclick = function () {
 }
 
 function addTeacher() {
-    // var taiKhoan = getEle("TaiKhoan").value;
-    // var hoTen = getEle("HoTen").value;
-    // var matKhau = getEle("MatKhau").value;
-    // var email = getEle("Email").value;
-    // var hinhAnh = getEle("HinhAnh").value;
-    // var loaiNguoiDung = getEle("loaiNguoiDung").value;
-    // var loaiNgonNgu = getEle("loaiNgonNgu").value;
-    // var moTa = getEle("MoTa").value;
-
-    // var teacher = new Teacher("", taiKhoan, hoTen, matKhau, email, loaiNguoiDung, loaiNgonNgu, moTa, hinhAnh);
-
-
-    var teacher = validTeacher(true);
-    // console.log(teacher);
+    var teacher = validTeacher(true, false, id);
     if (teacher == null) { return };
     services
         .addTeacherApi(teacher)
@@ -102,6 +89,7 @@ function addTeacher() {
 
 // Sua
 function getTeacher(id) {
+    getEle("TaiKhoan").disabled = true;
     services
         .getTeacherId(id)
         .then(function (result) {
@@ -126,15 +114,17 @@ function getTeacher(id) {
 }
 
 function editTeacher(id) {
-    var taiKhoan = getEle("TaiKhoan").value;
-    var hoTen = getEle("HoTen").value;
-    var matKhau = getEle("MatKhau").value;
-    var email = getEle("Email").value;
-    var hinhAnh = getEle("HinhAnh").value;
-    var loaiNguoiDung = getEle("loaiNguoiDung").value;
-    var loaiNgonNgu = getEle("loaiNgonNgu").value;
-    var moTa = getEle("MoTa").value;
-    var teacher = new Teacher(id, taiKhoan, hoTen, matKhau, email, loaiNguoiDung, loaiNgonNgu, moTa, hinhAnh);
+    // var taiKhoan = getEle("TaiKhoan").value;
+    // var hoTen = getEle("HoTen").value;
+    // var matKhau = getEle("MatKhau").value;
+    // var email = getEle("Email").value;
+    // var hinhAnh = getEle("HinhAnh").value;
+    // var loaiNguoiDung = getEle("loaiNguoiDung").value;
+    // var loaiNgonNgu = getEle("loaiNgonNgu").value;
+    // var moTa = getEle("MoTa").value;
+    // var teacher = new Teacher(id, taiKhoan, hoTen, matKhau, email, loaiNguoiDung, loaiNgonNgu, moTa, hinhAnh);
+    var teacher = validTeacher(false, true, id);
+    if (teacher == null) { return };
     services
         .editTeacherApi(teacher)
         .then(function (result) {
@@ -157,7 +147,8 @@ function resetValue() {
     getEle("MoTa").value = "";
 }
 
-function validTeacher(isAdd) {
+function validTeacher(isAdd, isEdit, id) {
+    var id = isEdit ? id : "";
     var taiKhoan = getEle("TaiKhoan").value;
     var hoTen = getEle("HoTen").value;
     var matKhau = getEle("MatKhau").value;
@@ -166,15 +157,41 @@ function validTeacher(isAdd) {
     var loaiNguoiDung = getEle("loaiNguoiDung").value;
     var loaiNgonNgu = getEle("loaiNgonNgu").value;
     var moTa = getEle("MoTa").value;
-    var teacher = new Teacher("", taiKhoan, hoTen, matKhau, email, hinhAnh, loaiNguoiDung, loaiNgonNgu, moTa);
+    var teacher = new Teacher(id, taiKhoan, hoTen, matKhau, email, loaiNguoiDung, loaiNgonNgu, moTa, hinhAnh);
     // Validation
     var isValid = true;
     if (isAdd) {
+        // tk
         isValid &= valid.kiemTraRong(taiKhoan, "tkError", "(*) Vui lòng nhập tài khoản") &&
-            valid.kiemTraTkTonTai(taiKhoan, "tkError", "(*)Tài khoản đã tồn tại")
+            valid.kiemTraTkTonTai(taiKhoan, "tkError", "(*)Tài khoản đã tồn tại", lstTeacher);
     }
+    // hoTen
+    isValid &= valid.kiemTraRong(hoTen, "hotenError", "(*) Vui lòng nhập họ tên") &&
+        valid.kiemTraChuoiKiTu(hoTen, "hotenError", "(*) Họ tên không bao gồm số và ký tự đặc biệt");
+
+    // mat khau 
+    isValid &= valid.kiemTraRong(matKhau, "mkError", "(*) Vui lòng nhập mật khẩu") &&
+        valid.kiemTraDoDai(matKhau, "mkError", "(*) Mật khẩu phải từ 6 - 8 ký tự", 6, 8) &&
+        valid.kiemTraMatKhau(matKhau, "mkError", "(*) Mật khẩu có ít nhất 1 ký tự hoa, 1 ký tự đặc biệt, 1 ký tự số");
+
+    // email
+    isValid &= valid.kiemTraRong(email, "emailError", "(*) Vui lòng nhập email") &&
+        valid.kiemTraEmail(email, "emailError", "(*) Email không hợp lệ");
+
+    // hinh anh
+    isValid &= valid.kiemTraRong(hinhAnh, "hinhAnhError", "(*) Vui lòng nhập hình ảnh");
+
+    // loaiND
+    isValid &= valid.kiemTraSelect("loaiNguoiDung", "loaNDError", "(*) Vui lòng chọn người dùng");
+
+    // loaiNN
+    isValid &= valid.kiemTraSelect("loaiNgonNgu", "loaiNNError", "(*) Vui lòng chọn ngôn ngữ");
+
+    // mota
+    isValid &= valid.kiemTraRong(moTa, "motaError", "(*) Vui lòng nhập mô tả") &&
+        valid.kiemTraDoDai(moTa, "motaError", "(*) Mô tả tối đa 60 ký tự", 1, 60);
+
     if (!isValid) { return null };
     return teacher
 }
 
-console.log(lstTeacher);
